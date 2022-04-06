@@ -4,12 +4,7 @@ import 'dart:io';
 
 import 'package:forge2d/forge2d.dart' hide Timer;
 
-class Room {
-  String? name;
-  int? uid;
-  List<User>? participants;
-  User? host;
-}
+import 'helpers.dart';
 
 class User {
   WebSocket? ws;
@@ -18,7 +13,10 @@ class User {
   String? ip;
   int? port;
   bool? enteredToRoom;
-  Room? inRoom;
+
+  void send(String data) {
+    ws?.add(data);
+  }
 }
 
 class GameMap {
@@ -36,7 +34,6 @@ class GameMap {
 }
 
 class Game {
-  String? name;
   int? uid;
   List<User>? participants;
   GameMap? gameMap;
@@ -44,11 +41,13 @@ class Game {
   World world = World(Vector2.zero());
   Map<User, Body> userBodiesMap = {};
 
-  Game({required Room fromRoom}) {
-    participants = fromRoom.participants;
-    name = fromRoom.name;
-    uid = fromRoom.uid;
-
+  Game({required List<User> forUsers}) {
+    participants = forUsers;
+    uid = DateTime.now().microsecondsSinceEpoch;
+    sendGroupUsers(forUsers, jsonEncode({'map': GameMap(id: 1).lines}));
+    for (var user in forUsers) {
+      user.send(jsonEncode({'yourIndex': forUsers.indexOf(user) + 1}));
+    }
     List<Body> players = [];
     List<Body> walls = [];
     BodyDef wallBodyDef = BodyDef();
@@ -88,7 +87,23 @@ class Game {
   void tick() {
     world.stepDt(timeStep);
     for (var user in participants!) {
-      user.ws?.add(json.encode(userBodiesMap[user]!.position.toString()));
+      user.send(json.encode(userBodiesMap[user]!.position.toString()));
+    }
+  }
+
+  void playerAction(String actionCoded, User user) {
+    try {
+      Map<String, dynamic> decodedAction = jsonDecode(actionCoded);
+      switch (decodedAction['key']) {
+        case 'Up':
+          world.bodies
+              .firstWhere((body) => userBodiesMap.containsValue(body))
+              .applyAngularImpulse(1);
+          break;
+        default:
+      }
+    } catch (e) {
+      print(e);
     }
   }
 }
