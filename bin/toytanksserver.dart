@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'server.dart';
 
@@ -9,9 +10,10 @@ void main(List<String> arguments) async {
   startServer();
 }
 
-void handleData(Map<String, dynamic> decoded, WebSocket fromWS) {
+void handleData(String coded, WebSocket fromWS) {
+  print(coded);
   try {
-    print(decoded);
+    print(jsonDecode(coded));
   } catch (e) {
     print(e);
   }

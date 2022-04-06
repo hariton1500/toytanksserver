@@ -29,16 +29,8 @@ startServer() {
         ws.listen(
           (data) {
             print(
-                '\t\t${request.connectionInfo?.remoteAddress} -- ${Map<String, String>.from(json.decode(data))}');
-            handleData(json.decode(data), ws);
-            /*
-            Timer(Duration(seconds: 1), () {
-              if (ws.readyState == WebSocket.open) {
-                ws.add(json.encode({
-                  'data': 'from server at ${DateTime.now().toString()}',
-                }));
-              }
-            });*/
+                '\t\t${request.connectionInfo?.remoteAddress} -- $data))}');
+            handleData(data, ws);
           },
           onDone: () => handleOnDone(ws),
           onError: (err) => print('[!]Error -- ${err.toString()}'),
