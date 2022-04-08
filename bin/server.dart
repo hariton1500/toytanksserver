@@ -13,7 +13,7 @@ import 'toytanksserver.dart';
 //import 'dart:async' show Timer;
 List<User> users = [];
 startServer() {
-  HttpServer.bind(InternetAddress.loopbackIPv4, 8000).then((HttpServer server) {
+  HttpServer.bind(InternetAddress.anyIPv4, 8000).then((HttpServer server) {
     print('[+]WebSocket listening at -- ws://localhost:8000/');
     server.listen((HttpRequest request) {
       WebSocketTransformer.upgrade(request).then((WebSocket ws) {

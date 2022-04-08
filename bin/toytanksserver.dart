@@ -5,6 +5,7 @@ import 'models.dart';
 import 'server.dart';
 
 //create games types identificators
+Map<String, List<User>> gameQuers = {};
 List<User> game2x2 = [];
 List<User> game3x3 = [];
 List<User> game4x4 = [];
@@ -28,6 +29,21 @@ void handleData(String coded, WebSocket fromWS) {
       case 'handshake':
         User _user = users.firstWhere((_u) => _u.ws == fromWS);
         _user.loadHandshake(decoded);
+        break;
+      case 'wantGame':
+        User _user = users.firstWhere((_u) => _u.ws == fromWS);
+        String gameType = decoded['wantGame'].toString();
+        print('user ${_user.name} wants enter game $gameType');
+        gameQuers[gameType]!.add(_user);
+        print(
+            'number of users in $gameType room is: ${gameQuers[gameType]!.length}');
+        if (gameQuers[gameType]!.length >= 4) {
+          startGame(gameQuers[gameType]!);
+          gameQuers[gameType]!.removeRange(0, 4);
+        } else {
+          sendGroupUsers(gameQuers[gameType]!,
+              jsonEncode({'userJoinedGame': gameQuers[gameType]!.last.name}));
+        }
         break;
       case 'wantGame2x2':
         User _user = users.firstWhere((_u) => _u.ws == fromWS);
