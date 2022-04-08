@@ -8,7 +8,7 @@ import 'helpers.dart';
 
 class User {
   WebSocket? ws;
-  int? uid;
+  String? email;
   String? name;
   String? ip;
   int? port;
@@ -16,6 +16,21 @@ class User {
 
   void send(String data) {
     ws?.add(data);
+  }
+
+  void loadHandshake(Map<String, dynamic> decoded) {
+    try {
+      print('loading new user handshake data');
+      print('decoded: $decoded');
+      //Map<String, dynamic> data = decoded['handshake'];
+      //print('data: $data');
+      name = decoded['handshake']['name'].toString();
+      print('get name: $name');
+      email = decoded['handshake']['email'].toString();
+      print('get email: $email');
+    } catch (e) {
+      print(e);
+    }
   }
 }
 

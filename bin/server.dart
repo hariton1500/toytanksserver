@@ -20,7 +20,7 @@ startServer() {
         //return ws;
         //print(request.connectionInfo?.localPort.toString());
         //print(request.connectionInfo?.remotePort.toString());
-        //print(request.connectionInfo?.remoteAddress.host.toString());
+        print(request.connectionInfo?.remoteAddress.host.toString());
         User user = User();
         user.ws = ws;
         user.ip = request.connectionInfo?.remoteAddress.address;
@@ -28,7 +28,8 @@ startServer() {
         users.add(user);
         ws.listen(
           (data) {
-            print('\t\t${request.connectionInfo?.remoteAddress} -- $data))}');
+            print('\t\t${request.connectionInfo?.remoteAddress}');
+            print(data);
             handleData(data, ws);
           },
           onDone: () => handleOnDone(ws),
