@@ -10,17 +10,6 @@ void sendGroupUsers(List<User> toUsers, String message) {
 }
 
 void startGame(List<User> participants) {
-  games.add(Game(forUsers: participants));
-}
-
-void startGame2x2(List<User> participants) {
-  games.add(Game(forUsers: participants));
-}
-
-void startGame3x3(List<User> participants) {
-  games.add(Game(forUsers: participants));
-}
-
-void startGame4x4(List<User> participants) {
+  //Game _game = Game(forUsers: participants);
   games.add(Game(forUsers: participants));
 }

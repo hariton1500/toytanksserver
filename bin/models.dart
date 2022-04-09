@@ -13,6 +13,8 @@ class User {
   String? ip;
   int? port;
   bool? enteredToRoom;
+  Body? body;
+  Vector2? position, newPosition;
 
   void send(String data) {
     ws?.add(data);
@@ -50,18 +52,22 @@ class GameMap {
 
 class Game {
   int? uid;
-  List<User>? participants;
+  List<User> participants = [];
   GameMap? gameMap;
-  var timeStep = 1 / 60;
+  var timeStep = 1 / 30;
   World world = World(Vector2.zero());
   Map<User, Body> userBodiesMap = {};
 
   Game({required List<User> forUsers}) {
-    participants = forUsers;
+    print('new game generating');
+    participants.addAll(forUsers);
+    print('players: ${participants.map((e) => e.name).toList()}');
     uid = DateTime.now().microsecondsSinceEpoch;
-    sendGroupUsers(forUsers, jsonEncode({'map': GameMap(id: 1).lines}));
-    for (var user in forUsers) {
-      user.send(jsonEncode({'yourIndex': forUsers.indexOf(user) + 1}));
+    print('sending map');
+    sendGroupUsers(participants, jsonEncode({'map': GameMap(id: 1).lines}));
+    print('sending indexes');
+    for (var user in participants) {
+      user.send(jsonEncode({'yourIndex': participants.indexOf(user) + 1}));
     }
     List<Body> players = [];
     List<Body> walls = [];
@@ -90,19 +96,72 @@ class Game {
             Body _body = world.createBody(playerBodyDef);
             _body.createFixtureFromShape(playerBox);
             players.add(_body);
-            userBodiesMap[participants![0]] = _body;
+            participants[0].body = _body;
+            break;
+          case '2': //player 2
+            playerBodyDef.position = Vector2(i.toDouble(), j.toDouble());
+            Body _body = world.createBody(playerBodyDef);
+            _body.createFixtureFromShape(playerBox);
+            players.add(_body);
+            participants[1].body = _body;
             break;
           default:
         }
       }
     }
-    Timer.periodic(Duration(milliseconds: 1000 ~/ 60), (timer) => tick());
+    /*
+    Timer.periodic(Duration(milliseconds: (1000 * timeStep).ceil()), (timer) {
+      print(participants);
+      if (participants!.isEmpty) {
+        timer.cancel();
+      }
+      world.stepDt(timeStep);
+      try {
+        for (var user in participants!) {
+          user.newPosition =
+              world.bodies.firstWhere((_body) => user.body == _body).position;
+          if (user.newPosition != user.position) {
+            user.send(jsonEncode({
+              'position': {
+                '${participants!.indexOf(user) + 1}': {
+                  'x': user.newPosition!.x,
+                  'y': user.newPosition!.y
+                }
+              }
+            }));
+            user.position = user.newPosition;
+          }
+        }
+      } catch (e) {
+        print(e);
+      }
+    });*/
   }
 
-  void tick() {
+  void tick(Timer t) {
+    print(participants);
+    if (participants.isEmpty) {
+      t.cancel();
+    }
     world.stepDt(timeStep);
-    for (var user in participants!) {
-      user.send(json.encode(userBodiesMap[user]!.position.toString()));
+    try {
+      for (var user in participants) {
+        user.newPosition =
+            world.bodies.firstWhere((_body) => user.body == _body).position;
+        if (user.newPosition != user.position) {
+          user.send(jsonEncode({
+            'position': {
+              '${participants.indexOf(user) + 1}': {
+                'x': user.newPosition!.x,
+                'y': user.newPosition!.y
+              }
+            }
+          }));
+          user.position = user.newPosition;
+        }
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
