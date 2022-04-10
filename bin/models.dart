@@ -170,8 +170,8 @@ class Game {
       //Map<String, dynamic> decodedAction = jsonDecode(actionCoded);
       switch (action['key']) {
         case 'speed':
-          Vector2 impulse =
-              Vector2(action['key']['speed'], action['key']['speed']);
+          double num = int.parse(action['key']['speed']).toDouble();
+          Vector2 impulse = Vector2(num, num);
           user.body!.applyLinearImpulse(impulse, wake: true);
           break;
         default:
