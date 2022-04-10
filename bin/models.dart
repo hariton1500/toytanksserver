@@ -42,6 +42,7 @@ class GameMap {
 
   GameMap({required int id}) {
     try {
+      print('loading maps/map$id.txt');
       var file = File('maps/map$id.txt');
       lines = file.readAsLinesSync();
     } catch (e) {
@@ -64,7 +65,10 @@ class Game {
     print('players: ${participants.map((e) => e.name).toList()}');
     uid = DateTime.now().microsecondsSinceEpoch;
     print('sending map');
-    sendGroupUsers(participants, jsonEncode({'map': GameMap(id: 1).lines}));
+    sendGroupUsers(
+        participants,
+        jsonEncode(
+            {'map': GameMap(id: (participants.length / 2).floor()).lines}));
     print('sending indexes');
     for (var user in participants) {
       user.send(jsonEncode({'yourIndex': participants.indexOf(user) + 1}));
@@ -81,14 +85,14 @@ class Game {
     PolygonShape playerBox = PolygonShape();
     playerBox.setAsBoxXY(10, 20);
 
-    gameMap = GameMap(id: 1);
+    gameMap = GameMap(id: (participants.length / 2).floor());
     for (var i = 0; i < gameMap!.lines!.length; i++) {
       String _row = gameMap!.lines![i];
       for (var j = 0; j < _row.length; j++) {
         switch (_row[j]) {
           case '=': //border
             wallBodyDef.position =
-                Vector2((i * 20 + 10).toDouble(), (j * 20 + 10).toDouble());
+                Vector2((j * 20 + 10).toDouble(), (i * 20 + 10).toDouble());
             Body _body = world.createBody(wallBodyDef);
             _body.createFixtureFromShape(wallBox);
             _body.setType(BodyType.static);
@@ -96,7 +100,7 @@ class Game {
             break;
           case '1': //player 1
             playerBodyDef.position =
-                Vector2((i * 20 + 10).toDouble(), (j * 20 + 10).toDouble());
+                Vector2((j * 20 + 10).toDouble(), (i * 20 + 10).toDouble());
             print('playerBodyDef = ${playerBodyDef.position}');
             Body _body = world.createBody(playerBodyDef);
             _body.createFixtureFromShape(playerBox, 10);
@@ -109,7 +113,7 @@ class Game {
             break;
           case '2': //player 2
             playerBodyDef.position =
-                Vector2((i * 20 + 10).toDouble(), (j * 20 + 10).toDouble());
+                Vector2((j * 20 + 10).toDouble(), (i * 20 + 10).toDouble());
             Body _body = world.createBody(playerBodyDef);
             _body.createFixtureFromShape(playerBox, 1);
             _body.setType(BodyType.dynamic);
@@ -133,10 +137,12 @@ class Game {
     try {
       for (var user in participants) {
         //user.newPosition = world.bodies.firstWhere((_body) => user.body == _body).position;
+
         if (true) {
           //user.body!.position != user.position) {
-          //print('sending new pos = ${user.body!.position} to ${user.name}');
           for (var _user in participants) {
+            print(
+                'sending new pos = ${_user.body!.position} and angle = ${_user.body!.angle} to ${user.name}');
             user.send(jsonEncode({
               'position': {
                 'index': participants.indexOf(_user) + 1,
@@ -145,7 +151,7 @@ class Game {
                 'angle': _user.body!.angle
               }
             }));
-            _user.position = _user.body!.position;
+            //_user.position = _user.body!.position;
           }
         }
       }
@@ -164,7 +170,7 @@ class Game {
           //print('possition: ' + user.body!.position.toString());
           double num = key['speed'].toDouble();
           //print(num);
-          Vector2 impulse = Vector2(-num * 10, -num * 10);
+          Vector2 impulse = Vector2(-num * 100, -num * 100);
           //print(impulse);
           //print(user.body!.linearVelocity);
           user.body!.applyLinearImpulse(impulse, wake: true);
