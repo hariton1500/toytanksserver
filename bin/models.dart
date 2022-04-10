@@ -165,14 +165,14 @@ class Game {
     }
   }
 
-  void playerAction(String actionCoded, User user) {
+  void playerAction(Map<String, dynamic> action, User user) {
     try {
-      Map<String, dynamic> decodedAction = jsonDecode(actionCoded);
-      switch (decodedAction['key']) {
-        case 'Up':
-          world.bodies
-              .firstWhere((body) => userBodiesMap.containsValue(body))
-              .applyAngularImpulse(1);
+      //Map<String, dynamic> decodedAction = jsonDecode(actionCoded);
+      switch (action['key']) {
+        case 'speed':
+          Vector2 impulse =
+              Vector2(action['key']['speed'], action['key']['speed']);
+          user.body!.applyLinearImpulse(impulse, wake: true);
           break;
         default:
       }

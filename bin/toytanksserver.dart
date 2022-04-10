@@ -31,28 +31,6 @@ void main(List<String> arguments) async {
     for (var game in games) {
       //print(game.participants);
       game.tick(t);
-      /*
-      game.world.stepDt(1 / 30);
-      try {
-        for (var user in game.participants!) {
-          user.newPosition = game.world.bodies
-              .firstWhere((_body) => user.body == _body)
-              .position;
-          if (user.newPosition != user.position) {
-            user.send(jsonEncode({
-              'position': {
-                '${game.participants!.indexOf(user) + 1}': {
-                  'x': user.newPosition!.x,
-                  'y': user.newPosition!.y
-                }
-              }
-            }));
-            user.position = user.newPosition;
-          }
-        }
-      } catch (e) {
-        print(e);
-      }*/
     }
   });
 }
@@ -106,6 +84,7 @@ void handleOnDone(WebSocket _ws) {
     for (var game in games) {
       game.participants.remove(_user);
     }
+    games.removeWhere((game) => game.participants.isEmpty);
     for (var _users in gameQuers.values) {
       _users.remove(_user);
     }
