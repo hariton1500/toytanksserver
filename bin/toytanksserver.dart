@@ -7,6 +7,7 @@ import 'server.dart';
 
 //create games types identificators
 Map<String, List<User>> gameQuers = {
+  '0x0': [],
   '1x1': [],
   '2x2': [],
   '3x3': [],
@@ -55,6 +56,9 @@ void handleData(String coded, WebSocket fromWS) {
         print(
             'number of users in $gameType room is: ${gameQuers[gameType]!.length}');
         int gameTypeUsersNumber = int.parse(gameType[0]) * 2;
+        if (gameTypeUsersNumber == 0) {
+          gameTypeUsersNumber = 1;
+        }
         if (gameQuers[gameType]!.length >= gameTypeUsersNumber) {
           startGame(gameQuers[gameType]!);
           gameQuers[gameType]!.removeRange(0, gameTypeUsersNumber);

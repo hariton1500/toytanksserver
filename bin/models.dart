@@ -97,6 +97,7 @@ class Game {
           case '1': //player 1
             playerBodyDef.position =
                 Vector2((i * 20 + 10).toDouble(), (j * 20 + 10).toDouble());
+            print('playerBodyDef = ${playerBodyDef.position}');
             Body _body = world.createBody(playerBodyDef);
             _body.createFixtureFromShape(playerBox, 10);
             _body.setType(BodyType.dynamic);
