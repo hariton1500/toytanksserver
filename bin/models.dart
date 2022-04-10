@@ -69,6 +69,7 @@ class Game {
     for (var user in participants) {
       user.send(jsonEncode({'yourIndex': participants.indexOf(user) + 1}));
     }
+    print('creating world bodies');
     List<Body> players = [];
     List<Body> walls = [];
     BodyDef wallBodyDef = BodyDef();
@@ -76,9 +77,9 @@ class Game {
     playerBodyDef.type = BodyType.dynamic;
 
     PolygonShape wallBox = PolygonShape();
-    wallBox.setAsBox(10, 10, Vector2.zero(), 0);
+    wallBox.setAsBox(20, 20, Vector2.zero(), 0);
     PolygonShape playerBox = PolygonShape();
-    playerBox.setAsBoxXY(10, 5);
+    playerBox.setAsBoxXY(10, 20);
 
     gameMap = GameMap(id: 1);
     for (var i = 0; i < gameMap!.lines!.length; i++) {
@@ -86,22 +87,33 @@ class Game {
       for (var j = 0; j < _row.length; j++) {
         switch (_row[j]) {
           case '=': //border
-            wallBodyDef.position = Vector2(i.toDouble(), j.toDouble());
+            wallBodyDef.position =
+                Vector2((i * 20 + 10).toDouble(), (j * 20 + 10).toDouble());
             Body _body = world.createBody(wallBodyDef);
             _body.createFixtureFromShape(wallBox);
+            _body.setType(BodyType.static);
             walls.add(_body);
             break;
           case '1': //player 1
-            playerBodyDef.position = Vector2(i.toDouble(), j.toDouble());
+            playerBodyDef.position =
+                Vector2((i * 20 + 10).toDouble(), (j * 20 + 10).toDouble());
             Body _body = world.createBody(playerBodyDef);
-            _body.createFixtureFromShape(playerBox);
+            _body.createFixtureFromShape(playerBox, 10);
+            _body.setType(BodyType.dynamic);
+            _body.setActive(true);
+            print('player1 position: ${_body.position}');
+            //_body.setMassData(MassData.copy());
             players.add(_body);
             participants[0].body = _body;
             break;
           case '2': //player 2
-            playerBodyDef.position = Vector2(i.toDouble(), j.toDouble());
+            playerBodyDef.position =
+                Vector2((i * 20 + 10).toDouble(), (j * 20 + 10).toDouble());
             Body _body = world.createBody(playerBodyDef);
-            _body.createFixtureFromShape(playerBox);
+            _body.createFixtureFromShape(playerBox, 1);
+            _body.setType(BodyType.dynamic);
+            _body.setActive(true);
+            print('player2 position: ${_body.position}');
             players.add(_body);
             participants[1].body = _body;
             break;
@@ -109,55 +121,31 @@ class Game {
         }
       }
     }
-    /*
-    Timer.periodic(Duration(milliseconds: (1000 * timeStep).ceil()), (timer) {
-      print(participants);
-      if (participants!.isEmpty) {
-        timer.cancel();
-      }
-      world.stepDt(timeStep);
-      try {
-        for (var user in participants!) {
-          user.newPosition =
-              world.bodies.firstWhere((_body) => user.body == _body).position;
-          if (user.newPosition != user.position) {
-            user.send(jsonEncode({
-              'position': {
-                '${participants!.indexOf(user) + 1}': {
-                  'x': user.newPosition!.x,
-                  'y': user.newPosition!.y
-                }
-              }
-            }));
-            user.position = user.newPosition;
-          }
-        }
-      } catch (e) {
-        print(e);
-      }
-    });*/
   }
 
   void tick(Timer t) {
-    print(participants);
+    //print(participants);
     if (participants.isEmpty) {
       t.cancel();
     }
     world.stepDt(timeStep);
     try {
       for (var user in participants) {
-        user.newPosition =
-            world.bodies.firstWhere((_body) => user.body == _body).position;
-        if (user.newPosition != user.position) {
-          user.send(jsonEncode({
-            'position': {
-              '${participants.indexOf(user) + 1}': {
-                'x': user.newPosition!.x,
-                'y': user.newPosition!.y
+        //user.newPosition = world.bodies.firstWhere((_body) => user.body == _body).position;
+        if (true) {
+          //user.body!.position != user.position) {
+          //print('sending new pos = ${user.body!.position} to ${user.name}');
+          for (var _user in participants) {
+            user.send(jsonEncode({
+              'position': {
+                'index': participants.indexOf(_user) + 1,
+                'x': _user.body!.position.x,
+                'y': _user.body!.position.y,
+                'angle': _user.body!.angle
               }
-            }
-          }));
-          user.position = user.newPosition;
+            }));
+            _user.position = _user.body!.position;
+          }
         }
       }
     } catch (e) {
@@ -168,11 +156,21 @@ class Game {
   void playerAction(Map<String, dynamic> action, User user) {
     try {
       //Map<String, dynamic> decodedAction = jsonDecode(actionCoded);
-      switch (action['key']) {
+      Map<String, dynamic> key = action['key'];
+      //print('key is $key');
+      switch (key.keys.toList()[0]) {
         case 'speed':
-          double num = int.parse(action['key']['speed']).toDouble();
-          Vector2 impulse = Vector2(num, num);
+          //print('possition: ' + user.body!.position.toString());
+          double num = key['speed'].toDouble();
+          //print(num);
+          Vector2 impulse = Vector2(-num * 10, -num * 10);
+          //print(impulse);
+          //print(user.body!.linearVelocity);
           user.body!.applyLinearImpulse(impulse, wake: true);
+          break;
+        case 'leftRight':
+          double num = key['leftRight'].toDouble();
+          user.body!.applyTorque(num * 100);
           break;
         default:
       }

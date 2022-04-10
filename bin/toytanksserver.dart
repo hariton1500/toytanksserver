@@ -65,8 +65,10 @@ void handleData(String coded, WebSocket fromWS) {
         break;
       case 'playerAction':
         User _user = users.firstWhere((_u) => _u.ws == fromWS);
+        //print('playerAction ${decoded['playerAction']} from ${_user.name}');
         Game _game =
             games.firstWhere((game) => game.participants.contains(_user));
+        //print('in game uid = ${_game.uid}');
         _game.playerAction(decoded['playerAction'], _user);
         break;
       default:
